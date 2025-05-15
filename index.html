@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>JUEGO EN EL AULA</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1> JUEGO EN EL AULA   ---- POR CRISTHIAN YARLEQUE</h1>
+
+  <div>
+    <h2>Registrar Aula</h2>
+    <input type="text" id="nuevaAula" placeholder="Nombre del aula (ej: 1A)">
+    <button onclick="agregarAula()">Agregar Aula</button>
+  </div>
+
+  <div>
+    <h2>Registrar Curso</h2>
+    <select id="aulaCursoSelect"></select>
+    <input type="text" id="nuevoCurso" placeholder="Nombre del curso (ej: Matemática)">
+    <button onclick="agregarCurso()">Agregar Curso</button>
+  </div>
+
+  <div>
+    <h2>Registrar Alumno</h2>
+    <select id="aulaAlumnoSelect"></select>
+    <select id="cursoAlumnoSelect"></select>
+    <input type="text" id="nuevoAlumno" placeholder="Nombre del alumno">
+    <button onclick="agregarAlumno()">Agregar Alumno</button>
+  </div>
+
+  <div>
+    <h2>Ver Alumnos</h2>
+    <select id="aulaVerSelect"></select>
+    <select id="cursoVerSelect"></select>
+    <button onclick="mostrarAlumnos()">Mostrar Alumnos</button>
+  </div>
+
+  <div id="alumnosContainer"></div>
+
+  <script src="main.js"></script>
+</body>
+</html>
+<!-- Contenedor principal: para agregar aulas, cursos y alumnos -->
+<div id="principalSection">
+  <!-- Aquí todo tu código actual de formularios y selects -->
+  
+  <!-- Para mostrar botones por curso -->
+  <h2>Ir a Cursos para Evaluar</h2>
+  <div id="botonesCursosContainer"></div>
+</div>
+
+<!-- Interfaz avanzada para preguntas y respuestas -->
+<div id="interfazAvanzada" style="display:none; position: relative; padding: 20px; background:#fff; border-radius:8px; box-shadow:0 0 10px #aaa;">
+  <button onclick="volverAPrincipal()">← Volver</button>
+  <h2 id="tituloCursoAvanzado"></h2>
+  <button style="position:absolute; top:20px; right:20px;" onclick="mostrarFormularioPregunta()">Agregar Pregunta</button>
+
+  <div id="formPregunta" style="display:none; position:absolute; top:60px; right:20px; background:#f9f9f9; padding:10px; border-radius:6px; width:300px; box-shadow: 0 0 5px #aaa;">
+    <input type="text" id="inputPregunta" placeholder="Pregunta" style="width:100%; margin-bottom:5px;" />
+    <input type="text" id="inputRespuestaCorrecta" placeholder="Respuesta correcta" style="width:100%; margin-bottom:5px;" />
+    <button onclick="guardarPreguntaAvanzada()">Guardar Pregunta</button>
+  </div>
+
+  <div id="listaAlumnosAvanzado" style="margin-top: 80px;"></div>
+  <button onclick="calcularNotas()" style="margin-top: 15px; background-color: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 5px;">CALCULAR NOTA</button>
+  <div id="resultadosNotas" style="margin-top: 20px;"></div>
+  <button onclick="reiniciarContadores()" style="margin-top: 15px; background-color: #ff9800; color: white; padding: 8px 16px; border: none; border-radius: 5px;">REINICIAR</button>
+</div>
+
+
