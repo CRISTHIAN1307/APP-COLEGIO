@@ -133,6 +133,21 @@ function volverAPrincipal() {
 function mostrarCursoAvanzado() {
   const curso = aulas[aulaActual].cursos[cursoActual];
   document.getElementById("tituloCursoAvanzado").textContent = `Curso: ${curso.nombre} - Aula: ${aulas[aulaActual].nombre}`;
+  const contenedorCorrecta = document.getElementById("contenedorSeleccionCorrecta");
+if (curso.pregunta) {
+  contenedorCorrecta.innerHTML = `
+    <label><strong>Alternativa correcta:</strong></label>
+    <select id="correctaSeleccionada">
+      <option value="A">A</option>
+      <option value="B">B</option>
+      <option value="C">C</option>
+      <option value="D">D</option>
+      <option value="E">E</option>
+    </select>
+    <button onclick="establecerAlternativaCorrecta()">Establecer correcta y evaluar</button>
+  `;
+}
+
   document.getElementById("formPregunta").style.display = "none";
   document.getElementById("inputPregunta").value = "";
   document.getElementById("inputRespuestaCorrecta").value = "";
@@ -178,29 +193,52 @@ function mostrarAlumnosAvanzado() {
     const correcta = curso.pregunta.correcta.toUpperCase();
 
     ["A", "B", "C", "D", "E"].forEach(letra => {
-      const btn = document.createElement("button");
-      btn.textContent = letra;
-      btn.style.marginRight = "5px";
-      btn.style.color = "black";
-      btn.style.backgroundColor = "";
-
-      if (respuestaAlumno === letra) {
-        if (letra === correcta) {
-          // Correcto: verde
-          btn.style.backgroundColor = "#4CAF50";
-          btn.style.color = "white";
+        const btn = document.createElement("button");
+        btn.textContent = letra;
+        btn.style.marginRight = "5px";
+        btn.style.color = "black";
+      
+        // Pinta amarillo si es la selección temporal antes de evaluar
+        if (curso.selecciones?.[nombre] === letra) {
+          btn.style.backgroundColor = "yellow";
         } else {
-          // Incorrecto: rojo
-          btn.style.backgroundColor = "#f44336";
-          btn.style.color = "white";
+          btn.style.backgroundColor = "";
         }
-      }
+      
+        // Pinta verde/rojo después de evaluar, solo si ya hay respuesta guardada
+        const evaluado = curso.pregunta && curso.pregunta.correcta && curso.respuestas && Object.keys(curso.respuestas).length > 0;
 
-      btn.onclick = () => {
-        registrarRespuesta(nombre, letra);
-      };
-      opcionesCont.appendChild(btn);
-    });
+        if (evaluado) {
+          if (respuestaAlumno === letra) {
+            if (letra === correcta) {
+              btn.style.backgroundColor = "#4CAF50"; // verde
+              btn.style.color = "blue";
+            } else {
+              btn.style.backgroundColor = "#f44336"; // rojo
+              btn.style.color = "blue";
+            }
+          }
+        } else {
+          // Solo pintar amarillo si es selección temporal, pero no rojo/verde antes de evaluar
+          if (curso.selecciones?.[nombre] === letra) {
+            btn.style.backgroundColor = "yellow";
+          } else {
+            btn.style.backgroundColor = "";
+            btn.style.color = "black";
+          }
+        }
+        
+      
+        btn.onclick = () => {
+          curso.selecciones = curso.selecciones || {};
+          curso.selecciones[nombre] = letra;  // Guardar selección temporal
+          guardarDatos();
+          mostrarAlumnosAvanzado();
+        };
+      
+        opcionesCont.appendChild(btn);
+      });
+      
 
     fila.appendChild(opcionesCont);
     cont.appendChild(fila);
@@ -214,22 +252,56 @@ function mostrarFormularioPregunta() {
 
 function guardarPreguntaAvanzada() {
   const texto = document.getElementById("inputPregunta").value.trim();
-  const correcta = document.getElementById("inputRespuestaCorrecta").value.trim().toUpperCase();
-  if (!texto || !correcta) return alert("Completa pregunta y respuesta correcta");
+  if (!texto) return alert("Escribe la pregunta");
 
   const curso = aulas[aulaActual].cursos[cursoActual];
 
-  if (curso.pregunta && curso.pregunta.texto === texto && curso.pregunta.correcta === correcta) {
-    alert("Esa pregunta y respuesta ya están registradas.");
-    return;
-  }
+  // Si ya existe una pregunta previa, conserva su alternativa correcta
+  const correctaAnterior = curso.pregunta?.correcta || null;
 
-  curso.pregunta = { texto, correcta };
-  curso.puntajes = {};
-  curso.respuestas = {};
+  // Solo actualiza el texto de la pregunta y conserva lo demás
+  curso.pregunta = {
+    texto: texto,
+    correcta: correctaAnterior
+  };
+  
+  
   guardarDatos();
   mostrarCursoAvanzado();
 }
+
+  
+function establecerAlternativaCorrecta() {
+    const curso = aulas[aulaActual].cursos[cursoActual];
+    const correcta = document.getElementById("correctaSeleccionada").value;
+    curso.pregunta.correcta = correcta;
+  
+    // Reiniciar contadores
+    
+    curso.alumnos.forEach(nombre => {
+      const seleccion = curso.selecciones?.[nombre];
+      if (!seleccion) return;
+  
+      // Registrar respuesta
+      curso.respuestas[nombre] = seleccion;
+  
+      // Contar respuestas totales
+      curso.respuestasTotales[nombre] = (curso.respuestasTotales[nombre] || 0) + 1;
+  
+      // Contar puntajes (correctas)
+      if (seleccion === correcta) {
+        curso.puntajes[nombre] = (curso.puntajes[nombre] || 0) + 1;
+        curso.correctasTotales[nombre] = (curso.correctasTotales[nombre] || 0) + 1;
+      } else {
+        curso.puntajes[nombre] = curso.puntajes[nombre] || 0;
+        curso.correctasTotales[nombre] = curso.correctasTotales[nombre] || 0;
+      }
+    });
+  
+    guardarDatos();
+    mostrarAlumnosAvanzado();
+  }
+  
 
 function registrarRespuesta(nombreAlumno, respuesta) {
   const curso = aulas[aulaActual].cursos[cursoActual];
@@ -268,6 +340,9 @@ function registrarRespuesta(nombreAlumno, respuesta) {
   mostrarAlumnosAvanzado();
 }
 
+
+  
+
 function reiniciarContadores() {
     const curso = aulas[aulaActual].cursos[cursoActual];
   
@@ -291,7 +366,7 @@ function reiniciarContadores() {
     curso.alumnos.forEach(nombre => {
       const correctasT = curso.correctasTotales[nombre] || 0;
       const respondidas = curso.respuestasTotales[nombre] || 0;
-      const nota = respondidas > 0 ? ((correctasT * 20) / respondidas).toFixed(2) : "N/A";
+      const nota = respondidas > 0 ? ((correctasT * 20) / (respondidas-1)).toFixed(2) : "N/A";
   
       resultados.push({ nombre, nota: nota === "N/A" ? -1 : parseFloat(nota), mostrar: nota });
     });
